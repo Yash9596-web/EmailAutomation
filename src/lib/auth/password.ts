@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import { config } from '@/lib/config';
 
 const SALT_ROUNDS = 12;
