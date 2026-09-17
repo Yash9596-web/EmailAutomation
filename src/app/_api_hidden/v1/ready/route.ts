@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import db from '@/lib/db';

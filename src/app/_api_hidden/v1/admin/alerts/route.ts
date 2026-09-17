@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { AuthorizationService } from '@/lib/auth/authorization';
 import { successResponse, errorResponse } from '@/lib/api-response';
 import { AlertService } from '@/lib/observability/alerting';

@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import styles from './page.module.css';
 
 const MOCK_METRICS = [

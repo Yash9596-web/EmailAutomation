@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { ExceptionService } from '@/lib/exceptions/exception-service';
 import { ResolutionEngine } from '@/lib/exceptions/resolution-engine';

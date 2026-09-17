@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { SessionService } from '@/lib/auth/session';
 import { auditService } from '@/lib/audit';

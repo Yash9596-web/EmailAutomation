@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { IntegrationService } from '@/lib/services/integration-service';
 import { errorResponse, successResponse } from '@/lib/api-response';

@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { NextResponse } from 'next/server';
 import { WorkflowService } from '@/lib/services/workflow-service';
 import { executeWorkflowSchema } from '@/lib/validations/workflow';

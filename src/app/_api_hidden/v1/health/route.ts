@@ -1,4 +1,3 @@
-export const runtime = 'edge';
 import { successResponse } from '@/lib/api-response';
 
 export async function GET() {
