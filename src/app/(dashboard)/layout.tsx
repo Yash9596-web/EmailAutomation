@@ -1,3 +1,4 @@
+export const runtime = 'edge';
 import React from 'react';
 import Sidebar from './Sidebar';
 import styles from './layout.module.css';
