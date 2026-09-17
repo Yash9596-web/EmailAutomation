@@ -18,14 +18,7 @@ export class OnboardingTemplates {
           tenantId,
           name: 'Default Low Stock Alert',
           description: 'Triggers when inventory drops below reorder point.',
-          status: 'ACTIVE',
-          triggerType: 'EVENT',
-          config: {
-            eventName: 'inventory.low_stock',
-            actions: [
-              { type: 'NOTIFICATION', payload: { channel: 'EMAIL', role: 'PROCUREMENT_MANAGER' } }
-            ]
-          }
+          status: 'Published'
         }
       });
       logger.info({ message: 'Provisioned default workflow template', tenantId });
