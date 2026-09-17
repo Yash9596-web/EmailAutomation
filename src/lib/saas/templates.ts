@@ -7,13 +7,13 @@ export class OnboardingTemplates {
    */
   static async provisionFirstValueWorkflow(tenantId: string, userId: string) {
     try {
-      const existing = await db.workflowDefinition.findFirst({
+      const existing = await db.workflow.findFirst({
         where: { tenantId, name: 'Default Low Stock Alert' }
       });
 
       if (existing) return; // Idempotency check
 
-      await db.workflowDefinition.create({
+      await db.workflow.create({
         data: {
           tenantId,
           name: 'Default Low Stock Alert',
