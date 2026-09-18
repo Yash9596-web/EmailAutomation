@@ -89,8 +89,8 @@ export class SyncWorker {
               tenantId: integration.tenantId,
               source: 'EMAIL',
               file: Buffer.from(bodyStr),
-              fileName: title,
-              mimeType: 'text/plain',
+              fileName: `${title}.eml`,
+              mimeType: 'message/rfc822',
               metadata: {
                 messageId: email.id,
                 from: fromHeader?.value,
