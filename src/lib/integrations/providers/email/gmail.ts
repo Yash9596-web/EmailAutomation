@@ -123,6 +123,38 @@ export class GmailConnector implements ConnectorContract {
     }
   }
 
+  async syncUnreadEmails(credentials: CredentialPayload): Promise<any[]> {
+    if (!credentials.accessToken) {
+      throw new Error('Missing access token');
+    }
+
+    // 1. Get list of unread message IDs
+    const listRes = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?q=is:unread&maxResults=10', {
+      headers: { Authorization: `Bearer ${credentials.accessToken}` }
+    });
+
+    if (!listRes.ok) {
+      throw new Error(`Failed to list emails: ${await listRes.text()}`);
+    }
+
+    const listData = await listRes.json();
+    const messages = listData.messages || [];
+    const results = [];
+
+    // 2. Fetch full content for each message
+    for (const msg of messages) {
+      const msgRes = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${msg.id}?format=full`, {
+        headers: { Authorization: `Bearer ${credentials.accessToken}` }
+      });
+      if (msgRes.ok) {
+        const msgData = await msgRes.json();
+        results.push(msgData);
+      }
+    }
+
+    return results;
+  }
+
   async executeAction(action: string, credentials: CredentialPayload, config: Record<string, any>): Promise<any> {
     if (action === 'send_email') {
       // Future implementation: actual Gmail API send
