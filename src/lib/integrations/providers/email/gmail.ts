@@ -32,27 +32,71 @@ export class GmailConnector implements ConnectorContract {
   }
 
   async exchangeTokens({ code, redirectUri }: { code: string; redirectUri: string }): Promise<CredentialPayload> {
-    // In production, this would make an actual HTTP request to Google's token endpoint
-    // For this architecture implementation, we mock the HTTP response mapping but preserve the contract.
-    const mockTokenExchange = {
-      access_token: `mock_gmail_access_token_${code}`,
-      refresh_token: `mock_gmail_refresh_token`,
-      expires_in: 3600,
-      scope: this.metadata.requiredScopes!.join(' '),
-      token_type: 'Bearer',
-    };
+    const clientId = process.env.GMAIL_CLIENT_ID;
+    const clientSecret = process.env.GMAIL_CLIENT_SECRET;
 
+    if (!clientId || !clientSecret) {
+      throw new Error('Gmail OAuth credentials not configured on server');
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      code,
+      grant_type: 'authorization_code',
+      redirect_uri: redirectUri,
+    });
+
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Failed to exchange Google OAuth tokens: ${err}`);
+    }
+
+    const data = await response.json();
     return {
-      accessToken: mockTokenExchange.access_token,
-      refreshToken: mockTokenExchange.refresh_token,
-      expiresAt: new Date(Date.now() + mockTokenExchange.expires_in * 1000).toISOString(),
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token, // might be undefined if not prompted
+      expiresAt: new Date(Date.now() + data.expires_in * 1000).toISOString(),
     };
   }
 
   async refreshToken(refreshToken: string): Promise<CredentialPayload> {
+    const clientId = process.env.GMAIL_CLIENT_ID;
+    const clientSecret = process.env.GMAIL_CLIENT_SECRET;
+
+    if (!clientId || !clientSecret) {
+      throw new Error('Gmail OAuth credentials not configured on server');
+    }
+
+    const params = new URLSearchParams({
+      client_id: clientId,
+      client_secret: clientSecret,
+      refresh_token: refreshToken,
+      grant_type: 'refresh_token',
+    });
+
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: params.toString(),
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(`Failed to refresh Google OAuth tokens: ${err}`);
+    }
+
+    const data = await response.json();
     return {
-      accessToken: `mock_refreshed_access_token`,
-      expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token || refreshToken,
+      expiresAt: new Date(Date.now() + data.expires_in * 1000).toISOString(),
     };
   }
 
@@ -60,13 +104,28 @@ export class GmailConnector implements ConnectorContract {
     if (!credentials.accessToken) {
       return { success: false, message: 'Missing access token' };
     }
-    // E.g., make a request to /gmail/v1/users/me/profile
-    return { success: true, message: 'Successfully connected to Gmail' };
+    
+    try {
+      const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+        headers: {
+          Authorization: `Bearer ${credentials.accessToken}`
+        }
+      });
+      
+      if (!res.ok) {
+        return { success: false, message: 'Authentication failed or token expired' };
+      }
+      
+      const profile = await res.json();
+      return { success: true, message: `Successfully connected as ${profile.emailAddress}` };
+    } catch (e: any) {
+      return { success: false, message: e.message };
+    }
   }
 
   async executeAction(action: string, credentials: CredentialPayload, config: Record<string, any>): Promise<any> {
     if (action === 'send_email') {
-      // Simulate sending email
+      // Future implementation: actual Gmail API send
       return { id: 'msg_123', status: 'sent' };
     }
     throw new Error(`Unsupported action: ${action}`);
