@@ -7,28 +7,51 @@ import styles from '../auth.module.css';
 export default function LoginPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      router.push('/support');
-    }, 800);
+    setError('');
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get('email') as string;
+    const password = formData.get('password') as string;
+
+    try {
+      const res = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error?.message || 'Failed to login');
+      }
+
+      router.push('/support'); // Redirect to dashboard on success
+    } catch (err: any) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
   return (
     <>
       <h1 className={styles.title}>Sign in to your account</h1>
       
+      {error && <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>{error}</div>}
+
       <form className={styles.form} onSubmit={handleLogin}>
         <div className={styles.inputGroup}>
           <label htmlFor="email">Email Address</label>
-          <input type="email" id="email" placeholder="name@company.com" required />
+          <input type="email" id="email" name="email" placeholder="name@company.com" required />
         </div>
         
         <div className={styles.inputGroup}>
           <label htmlFor="password">Password</label>
-          <input type="password" id="password" placeholder="��������" required />
+          <input type="password" id="password" name="password" placeholder="••••••••" required />
         </div>
         
         <Link href="/forgot-password" className={styles.link}>
