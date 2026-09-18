@@ -1,8 +1,8 @@
 import crypto from 'crypto';
 
-// In production, this should come from process.env.ENCRYPTION_KEY
-// It must be a 32-byte (256-bit) base64 string for AES-256-GCM.
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || '12345678901234567890123456789012'; // Fallback for dev
+const RAW_KEY = process.env.ENCRYPTION_KEY || '12345678901234567890123456789012';
+// Hash the key to guarantee it is exactly 32 bytes (256 bits) for AES-256
+const ENCRYPTION_KEY = crypto.createHash('sha256').update(RAW_KEY).digest();
 
 export class CryptoService {
   /**
@@ -10,7 +10,7 @@ export class CryptoService {
    */
   static encrypt(text: string): string {
     const iv = crypto.randomBytes(16);
-    const cipher = crypto.createCipheriv('aes-256-gcm', Buffer.from(ENCRYPTION_KEY), iv);
+    const cipher = crypto.createCipheriv('aes-256-gcm', ENCRYPTION_KEY, iv);
     
     let encrypted = cipher.update(text, 'utf8', 'hex');
     encrypted += cipher.final('hex');
@@ -34,7 +34,7 @@ export class CryptoService {
     const iv = Buffer.from(ivHex, 'hex');
     const authTag = Buffer.from(authTagHex, 'hex');
     
-    const decipher = crypto.createDecipheriv('aes-256-gcm', Buffer.from(ENCRYPTION_KEY), iv);
+    const decipher = crypto.createDecipheriv('aes-256-gcm', ENCRYPTION_KEY, iv);
     decipher.setAuthTag(authTag);
     
     let decrypted = decipher.update(encryptedDataHex, 'hex', 'utf8');
