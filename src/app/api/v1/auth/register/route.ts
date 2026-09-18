@@ -15,6 +15,23 @@ export async function POST(request: Request) {
       throw new ValidationError('Missing required fields');
     }
 
+    // Password complexity validation
+    if (password.length < 8) {
+      throw new ValidationError('Password must be at least 8 characters long');
+    }
+    if (!/\d/.test(password)) {
+      throw new ValidationError('Password must contain at least one number');
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      throw new ValidationError('Password must contain at least one special symbol');
+    }
+    if (password.toLowerCase().includes(name.toLowerCase())) {
+      throw new ValidationError('Password cannot contain your name');
+    }
+    if (password.toLowerCase().includes(email.split('@')[0].toLowerCase())) {
+      throw new ValidationError('Password cannot contain your email prefix');
+    }
+
     // Check if user already exists
     const existing = await db.user.findUnique({ where: { email } });
     if (existing) {
