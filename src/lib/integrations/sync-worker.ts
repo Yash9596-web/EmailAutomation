@@ -1,5 +1,5 @@
 import db from '@/lib/db';
-import { IntegrationService } from './index';
+import { IntegrationService } from '@/lib/services/integration-service';
 import { GmailConnector } from './providers/email/gmail';
 import { DocumentIngestionService } from '@/lib/documents/ingestion';
 
@@ -27,7 +27,7 @@ export class SyncWorker {
         console.log(`[SyncWorker] Syncing integration ${integration.id} (Tenant: ${integration.tenantId})`);
         
         // 1. Decrypt token
-        const credentials = await IntegrationService.getDecryptedCredentials(integration.id, 'oauth');
+        const credentials = await IntegrationService.getDecryptedCredentials(integration.id);
         if (!credentials) {
           console.warn(`[SyncWorker] No credentials found for ${integration.id}`);
           continue;
