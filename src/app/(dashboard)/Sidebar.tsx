@@ -5,19 +5,12 @@ import { usePathname } from 'next/navigation';
 import styles from './layout.module.css';
 
 const NAV_ITEMS = [
-  { name: 'Overview', href: '/' },
-  { name: 'Emails', href: '/emails' },
-  { name: 'Purchase Orders', href: '/purchase-orders' },
-  { name: 'Invoices', href: '/invoices' },
-  { name: 'Payments', href: '/payments' },
-  { name: 'Documents', href: '/documents' },
+  { name: 'Dashboard', href: '/support' },
+  { name: 'Documents AI', href: '/documents' },
   { name: 'Workflows', href: '/workflows' },
-  { name: 'Notifications', href: '/notifications' },
-  { name: 'Reports', href: '/reports' },
-  { name: 'AI Assistant', href: '/ai' },
-  { name: 'Approvals', href: '/approvals' },
-  { name: 'Settings', href: '/settings' },
-  { name: 'Audit Logs', href: '/audit' },
+  { name: 'Integrations', href: '/integrations' },
+  { name: 'Customers', href: '/customers' },
+  { name: 'Support Tickets', href: '/support' },
 ];
 
 export default function Sidebar() {
