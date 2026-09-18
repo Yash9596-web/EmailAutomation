@@ -1,0 +1,127 @@
+.container {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--color-foreground);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--color-gray-500);
+}
+
+.uploadBtn {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb;
+  color: white;
+  border-radius: 6px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-200);
+  background-color: var(--color-background);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.statCard:hover {
+  border-color: var(--color-gray-300);
+}
+
+.statCardActive {
+  border-color: #3b82f6;
+  background-color: #eff6ff;
+  box-shadow: 0 0 0 1px #3b82f6;
+}
+
+.statTitle {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-500);
+}
+
+.statCount {
+  margin-top: 0.5rem;
+  font-size: 1.875rem;
+  font-weight: 600;
+}
+
+.tableContainer {
+  background-color: var(--color-background);
+  border-radius: 8px;
+  border: 1px solid var(--color-gray-200);
+  overflow: hidden;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.th {
+  padding: 0.75rem 1.5rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-gray-500);
+  text-transform: uppercase;
+  background-color: var(--color-gray-50);
+}
+
+.td {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  border-top: 1px solid var(--color-gray-200);
+  vertical-align: middle;
+}
+
+.docTitle {
+  font-weight: 500;
+  color: var(--color-foreground);
+}
+
+.docSource {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+}
+
+.actionLink {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.actionLink:hover {
+  text-decoration: underline;
+}
+
+.badge {
+  padding: 0.25rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

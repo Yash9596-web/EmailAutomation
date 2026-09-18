@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
+import styles from './documents.module.css';
 
 export default function DocumentWorkspacePage() {
   const [documents, setDocuments] = useState<any[]>([]);
@@ -13,7 +14,7 @@ export default function DocumentWorkspacePage() {
     fetch('/api/v1/documents')
       .then(res => res.json())
       .then(json => {
-        setDocuments(json.data || []);
+        setDocuments(json.data?.data || []);
         setLoading(false);
       })
       .catch(err => {
@@ -33,59 +34,59 @@ export default function DocumentWorkspacePage() {
   };
 
   return (
-    <div className="p-8 max-w-7xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
+    <div className={styles.container}>
+      <div className={styles.header}>
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Document Workspace</h1>
-          <p className="text-gray-500 mt-2">Manage incoming business documents and extraction pipelines.</p>
+          <h1 className={styles.title}>Document Workspace</h1>
+          <p className={styles.subtitle}>Manage incoming business documents and extraction pipelines.</p>
         </div>
-        <button className="px-4 py-2 bg-blue-600 text-white rounded-md shadow-sm hover:bg-blue-700 font-medium">
+        <button className={styles.uploadBtn}>
           Upload Document
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+      <div className={styles.statsGrid}>
         <StatCard title="Total" count={stats.total} active={filter === 'ALL'} onClick={() => setFilter('ALL')} />
-        <StatCard title="Needs Review" count={stats.review} active={filter === 'REVIEW_REQUIRED'} onClick={() => setFilter('REVIEW_REQUIRED')} color="text-amber-600" />
-        <StatCard title="Processing" count={stats.processing} active={filter === 'PROCESSING'} onClick={() => setFilter('PROCESSING')} color="text-blue-600" />
-        <StatCard title="Failed" count={stats.failed} active={filter === 'FAILED'} onClick={() => setFilter('FAILED')} color="text-red-600" />
-        <StatCard title="Completed" count={stats.completed} active={filter === 'COMPLETED'} onClick={() => setFilter('COMPLETED')} color="text-green-600" />
+        <StatCard title="Needs Review" count={stats.review} active={filter === 'REVIEW_REQUIRED'} onClick={() => setFilter('REVIEW_REQUIRED')} color="#d97706" />
+        <StatCard title="Processing" count={stats.processing} active={filter === 'PROCESSING'} onClick={() => setFilter('PROCESSING')} color="#2563eb" />
+        <StatCard title="Failed" count={stats.failed} active={filter === 'FAILED'} onClick={() => setFilter('FAILED')} color="#dc2626" />
+        <StatCard title="Completed" count={stats.completed} active={filter === 'COMPLETED'} onClick={() => setFilter('COMPLETED')} color="#16a34a" />
       </div>
 
-      <div className="bg-white rounded-lg shadow border border-gray-200 overflow-hidden">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className={styles.tableContainer}>
+        <table className={styles.table}>
+          <thead>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Document</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+              <th className={styles.th}>Document</th>
+              <th className={styles.th}>Type</th>
+              <th className={styles.th}>Status</th>
+              <th className={styles.th}>Date</th>
+              <th className={styles.th} style={{ textAlign: 'right' }}>Action</th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody>
             {loading ? (
-              <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">Loading documents...</td></tr>
+              <tr><td colSpan={5} className={styles.td} style={{ textAlign: 'center', color: 'var(--color-gray-500)' }}>Loading documents...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={5} className="px-6 py-4 text-center text-gray-500">No documents found matching criteria.</td></tr>
+              <tr><td colSpan={5} className={styles.td} style={{ textAlign: 'center', color: 'var(--color-gray-500)' }}>No documents found matching criteria.</td></tr>
             ) : (
               filtered.map(doc => (
-                <tr key={doc.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="font-medium text-gray-900">{doc.title}</div>
-                    <div className="text-sm text-gray-500">{doc.source}</div>
+                <tr key={doc.id}>
+                  <td className={styles.td}>
+                    <div className={styles.docTitle}>{doc.title}</div>
+                    <div className={styles.docSource}>{doc.source}</div>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className={styles.td} style={{ color: 'var(--color-gray-500)' }}>
                     {doc.documentType || 'Unknown'}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className={styles.td}>
                     <StatusBadge status={doc.status} />
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  <td className={styles.td} style={{ color: 'var(--color-gray-500)' }}>
                     {new Date(doc.createdAt).toLocaleDateString()}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                    <Link href={`/documents/${doc.id}`} className="text-blue-600 hover:text-blue-900">
+                  <td className={styles.td} style={{ textAlign: 'right' }}>
+                    <Link href={`/documents/${doc.id}`} className={styles.actionLink}>
                       {doc.status === 'REVIEW_REQUIRED' ? 'Review' : 'View'}
                     </Link>
                   </td>
@@ -99,31 +100,33 @@ export default function DocumentWorkspacePage() {
   );
 }
 
-function StatCard({ title, count, active, onClick, color = 'text-gray-900' }: any) {
+function StatCard({ title, count, active, onClick, color = 'inherit' }: any) {
   return (
     <div 
       onClick={onClick}
-      className={`p-4 rounded-lg border cursor-pointer transition-colors ${active ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500' : 'border-gray-200 bg-white hover:border-gray-300'}`}
+      className={`${styles.statCard} ${active ? styles.statCardActive : ''}`}
     >
-      <h3 className="text-sm font-medium text-gray-500">{title}</h3>
-      <p className={`mt-2 text-3xl font-semibold ${color}`}>{count}</p>
+      <h3 className={styles.statTitle}>{title}</h3>
+      <p className={styles.statCount} style={{ color }}>{count}</p>
     </div>
   );
 }
 
 function StatusBadge({ status }: { status: string }) {
-  const colors: Record<string, string> = {
-    'RECEIVED': 'bg-gray-100 text-gray-800',
-    'QUEUED': 'bg-gray-100 text-gray-800',
-    'PROCESSING': 'bg-blue-100 text-blue-800',
-    'EXTRACTING': 'bg-blue-100 text-blue-800',
-    'VALIDATING_DATA': 'bg-purple-100 text-purple-800',
-    'REVIEW_REQUIRED': 'bg-amber-100 text-amber-800',
-    'COMPLETED': 'bg-green-100 text-green-800',
-    'FAILED': 'bg-red-100 text-red-800',
+  const colors: Record<string, any> = {
+    'RECEIVED': { bg: '#f3f4f6', text: '#1f2937' },
+    'QUEUED': { bg: '#f3f4f6', text: '#1f2937' },
+    'PROCESSING': { bg: '#dbeafe', text: '#1e40af' },
+    'EXTRACTING': { bg: '#dbeafe', text: '#1e40af' },
+    'VALIDATING_DATA': { bg: '#f3e8ff', text: '#6b21a8' },
+    'REVIEW_REQUIRED': { bg: '#fef3c7', text: '#92400e' },
+    'COMPLETED': { bg: '#dcfce7', text: '#166534' },
+    'FAILED': { bg: '#fee2e2', text: '#991b1b' },
   };
+  const theme = colors[status] || { bg: '#f3f4f6', text: '#1f2937' };
+  
   return (
-    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${colors[status] || 'bg-gray-100 text-gray-800'}`}>
+    <span className={styles.badge} style={{ backgroundColor: theme.bg, color: theme.text }}>
       {status}
     </span>
   );
