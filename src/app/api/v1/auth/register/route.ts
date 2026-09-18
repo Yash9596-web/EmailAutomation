@@ -28,6 +28,9 @@ export async function POST(request: Request) {
     if (password.toLowerCase().includes(name.toLowerCase())) {
       throw new ValidationError('Password cannot contain your name');
     }
+    if (password.toLowerCase().includes(organizationName.toLowerCase())) {
+      throw new ValidationError('Password cannot contain your organization name');
+    }
     if (password.toLowerCase().includes(email.split('@')[0].toLowerCase())) {
       throw new ValidationError('Password cannot contain your email prefix');
     }
