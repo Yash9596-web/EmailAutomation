@@ -1,70 +1,70 @@
 'use client';
-export const runtime = 'edge';
+// Removed export const runtime = 'edge' since this is a client component anyway, and we removed edge runtimes.
 
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import React, { useEffect, useState, use } from 'react';
+import styles from './builder.module.css';
 
-export default function WorkflowBuilderPage() {
-  const { id } = useParams();
+export default function WorkflowBuilderPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const [workflow, setWorkflow] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'BUILDER' | 'MONITOR'>('BUILDER');
 
   useEffect(() => {
-    fetch(`/api/v1/workflows/${id}`)
+    fetch(`/api/v1/workflows/${resolvedParams.id}`)
       .then(res => res.json())
       .then(json => {
         setWorkflow(json.data);
         setLoading(false);
       });
-  }, [id]);
+  }, [resolvedParams.id]);
 
-  if (loading) return <div className="p-8">Loading Builder...</div>;
-  if (!workflow) return <div className="p-8">Workflow not found</div>;
+  if (loading) return <div style={{ padding: '2rem' }}>Loading Builder...</div>;
+  if (!workflow) return <div style={{ padding: '2rem' }}>Workflow not found</div>;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className={styles.container}>
       {/* Header */}
-      <div className="px-6 py-4 bg-white border-b border-gray-200 flex justify-between items-center">
+      <div className={styles.header}>
         <div>
-          <h1 className="text-xl font-bold text-gray-900">{workflow.name} <span className="text-sm font-normal text-gray-500 ml-2">v{workflow.version}</span></h1>
-          <div className="flex space-x-4 mt-2">
+          <h1 className={styles.title}>{workflow.name} <span className={styles.versionBadge}>v{workflow.version}</span></h1>
+          <div className={styles.tabs}>
             <button 
-              className={`text-sm font-medium pb-2 border-b-2 ${activeTab === 'BUILDER' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
+              className={`${styles.tab} ${activeTab === 'BUILDER' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('BUILDER')}
             >
               Visual Builder
             </button>
             <button 
-              className={`text-sm font-medium pb-2 border-b-2 ${activeTab === 'MONITOR' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500'}`}
+              className={`${styles.tab} ${activeTab === 'MONITOR' ? styles.tabActive : ''}`}
               onClick={() => setActiveTab('MONITOR')}
             >
               Execution Monitor
             </button>
           </div>
         </div>
-        <div className="flex space-x-3">
-          <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md font-medium">Save Draft</button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium shadow hover:bg-blue-700">Publish Version</button>
+        <div className={styles.actions}>
+          <button className={styles.btnSecondary}>Save Draft</button>
+          <button className={styles.btnPrimary}>Publish Version</button>
         </div>
       </div>
 
       {/* Main Canvas Area */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className={styles.mainArea}>
         
         {/* Left Palette */}
         {activeTab === 'BUILDER' && (
-          <div className="w-64 bg-white border-r border-gray-200 p-4 overflow-y-auto">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Triggers</h3>
+          <div className={styles.sidebarLeft}>
+            <h3 className={styles.sectionTitle}>Triggers</h3>
             <NodeDraggable label="Event Trigger" icon="⚡" />
-            <NodeDraggable label="Schedule" icon="⏱" />
+            <NodeDraggable label="Schedule" icon="⏱️" />
             
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mt-6 mb-4">Actions</h3>
-            <NodeDraggable label="Create Transaction" icon="📝" />
-            <NodeDraggable label="Send Email" icon="✉️" />
+            <h3 className={styles.sectionTitle}>Actions</h3>
+            <NodeDraggable label="Create Transaction" icon="💸" />
+            <NodeDraggable label="Send Email" icon="📧" />
             <NodeDraggable label="AI Extraction" icon="🧠" />
             
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mt-6 mb-4">Logic</h3>
+            <h3 className={styles.sectionTitle}>Logic</h3>
             <NodeDraggable label="Condition Branch" icon="🔀" />
             <NodeDraggable label="Wait / Delay" icon="⏳" />
             <NodeDraggable label="Human Approval" icon="👤" />
@@ -72,53 +72,57 @@ export default function WorkflowBuilderPage() {
         )}
 
         {/* Center Canvas Workspace */}
-        <div className="flex-1 relative bg-gray-100 overflow-hidden">
-          {/* This is a placeholder for a true canvas library like React Flow */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50">
-            {activeTab === 'BUILDER' ? (
-              <div className="text-center">
-                <div className="text-6xl mb-4">🎨</div>
-                <h2 className="text-xl font-medium text-gray-700">Visual Node Canvas</h2>
-                <p className="text-gray-500">Drag and drop nodes here to construct the DAG.</p>
-              </div>
-            ) : (
-              <div className="w-full h-full p-8 overflow-auto pointer-events-auto">
-                <h2 className="text-xl font-semibold mb-4 text-gray-900">Execution History</h2>
-                <table className="min-w-full bg-white rounded-lg shadow">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Run ID</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Started</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Duration</th>
+        <div className={styles.workspace}>
+          {activeTab === 'BUILDER' ? (
+            <div className={styles.placeholder}>
+              <div className={styles.placeholderIcon}>🛠️</div>
+              <h2 className={styles.placeholderTitle}>Visual Node Canvas</h2>
+              <p className={styles.placeholderDesc}>Drag and drop nodes here to construct the workflow.</p>
+            </div>
+          ) : (
+            <div className={styles.monitorContainer}>
+              <h2 className={styles.monitorTitle}>Execution History</h2>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={styles.th}>Run ID</th>
+                    <th className={styles.th}>Started</th>
+                    <th className={styles.th}>Status</th>
+                    <th className={styles.th} style={{ textAlign: 'right' }}>Duration</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {/* Mock execution logs */}
+                  {workflow.runs?.map((run: any) => (
+                    <tr key={run.id}>
+                      <td className={styles.td} style={{ fontFamily: 'monospace', color: '#2563eb' }}>{run.id}</td>
+                      <td className={styles.td}>{new Date(run.createdAt).toLocaleString()}</td>
+                      <td className={styles.td}>
+                        <span className={run.status === 'Succeeded' ? styles.badgeSucceeded : run.status === 'Failed' ? styles.badgeFailed : styles.badgePending}>
+                          {run.status}
+                        </span>
+                      </td>
+                      <td className={styles.td} style={{ textAlign: 'right' }}>1.2s</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {/* Mock execution logs */}
-                    {workflow.runs?.map((run: any) => (
-                      <tr key={run.id} className="border-t">
-                        <td className="px-6 py-4 font-mono text-xs text-blue-600">{run.id}</td>
-                        <td className="px-6 py-4 text-sm text-gray-500">{new Date(run.createdAt).toLocaleString()}</td>
-                        <td className="px-6 py-4">
-                          <span className={`px-2 py-1 text-xs rounded-full font-semibold ${run.status === 'Succeeded' ? 'bg-green-100 text-green-800' : run.status === 'Failed' ? 'bg-red-100 text-red-800' : 'bg-amber-100 text-amber-800'}`}>
-                            {run.status}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 text-right text-sm text-gray-500">1.2s</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
+                  ))}
+                  {(!workflow.runs || workflow.runs.length === 0) && (
+                    <tr>
+                      <td colSpan={4} className={styles.td} style={{ textAlign: 'center', color: 'var(--color-gray-500)' }}>
+                        No executions yet. Publish your workflow to start running.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
 
         {/* Right Configuration Panel */}
         {activeTab === 'BUILDER' && (
-          <div className="w-80 bg-white border-l border-gray-200 p-4">
-            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Node Configuration</h3>
-            <div className="p-4 border border-dashed border-gray-300 rounded text-center text-sm text-gray-500">
+          <div className={styles.sidebarRight}>
+            <h3 className={styles.sectionTitle}>Node Configuration</h3>
+            <div className={styles.configPlaceholder}>
               Select a node on the canvas to configure variables, AI prompts, or business logic.
             </div>
           </div>
@@ -130,9 +134,9 @@ export default function WorkflowBuilderPage() {
 
 function NodeDraggable({ label, icon }: { label: string, icon: string }) {
   return (
-    <div className="flex items-center p-3 mb-2 bg-white border border-gray-200 rounded shadow-sm cursor-grab hover:border-blue-400">
-      <span className="text-xl mr-3">{icon}</span>
-      <span className="text-sm font-medium text-gray-700">{label}</span>
+    <div className={styles.nodeDraggable}>
+      <span className={styles.nodeIcon}>{icon}</span>
+      <span className={styles.nodeLabel}>{label}</span>
     </div>
   );
 }
