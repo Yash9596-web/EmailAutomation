@@ -5,13 +5,16 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './manage.module.css';
 
-export default function ManageIntegrationPage({ params }: { params: { id: string } }) {
+import { use } from 'react';
+
+export default function ManageIntegrationPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
   const [integration, setIntegration] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    fetch(`/api/v1/integrations/${params.id}`)
+    fetch(`/api/v1/integrations/${resolvedParams.id}`)
       .then(res => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
@@ -23,13 +26,13 @@ export default function ManageIntegrationPage({ params }: { params: { id: string
       .catch(err => {
         router.push('/integrations');
       });
-  }, [params.id, router]);
+  }, [resolvedParams.id, router]);
 
   const handleDisconnect = async () => {
     if (!confirm('Are you sure you want to disconnect this integration?')) return;
     
     try {
-      await fetch(`/api/v1/integrations/${params.id}`, { method: 'DELETE' });
+      await fetch(`/api/v1/integrations/${resolvedParams.id}`, { method: 'DELETE' });
       router.push('/integrations');
     } catch (err) {
       alert('Failed to disconnect');
