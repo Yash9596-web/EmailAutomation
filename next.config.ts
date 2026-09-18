@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* Cloudflare next-on-pages requires standard output, no standalone */
+  /* Vercel handles everything automatically */
 };
 
 export default nextConfig;
