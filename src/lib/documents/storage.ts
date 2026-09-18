@@ -12,12 +12,12 @@ export class DocumentStorage {
   static validate(fileInfo: { name: string; size: number; mimeType: string }) {
     if (fileInfo.size > 20 * 1024 * 1024) throw new Error('File exceeds 20MB limit');
     
-    const allowedMime = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff'];
-    if (!allowedMime.includes(fileInfo.mimeType)) throw new Error('Unsupported file type');
+    const allowedMime = ['application/pdf', 'image/jpeg', 'image/png', 'image/tiff', 'text/plain', 'message/rfc822'];
+    if (!allowedMime.includes(fileInfo.mimeType)) throw new Error(`Unsupported file type: ${fileInfo.mimeType}`);
 
     const ext = path.extname(fileInfo.name).toLowerCase();
-    if (!['.pdf', '.jpg', '.jpeg', '.png', '.tiff'].includes(ext)) {
-      throw new Error('Unsupported file extension');
+    if (!['.pdf', '.jpg', '.jpeg', '.png', '.tiff', '.txt', '.eml'].includes(ext) && ext !== '') {
+      throw new Error(`Unsupported file extension: ${ext}`);
     }
   }
 

@@ -2,6 +2,7 @@ import db from '@/lib/db';
 import { IntegrationService } from '@/lib/services/integration-service';
 import { GmailConnector } from './providers/email/gmail';
 import { DocumentIngestionService } from '@/lib/documents/ingestion';
+import { CryptoService } from '@/lib/integrations/crypto';
 
 export class SyncWorker {
   /**
@@ -27,14 +28,36 @@ export class SyncWorker {
         console.log(`[SyncWorker] Syncing integration ${integration.id} (Tenant: ${integration.tenantId})`);
         
         // 1. Decrypt token
-        const credentials = await IntegrationService.getDecryptedCredentials(integration.id);
+        let credentials = await IntegrationService.getDecryptedCredentials(integration.id);
         if (!credentials) {
           console.warn(`[SyncWorker] No credentials found for ${integration.id}`);
           continue;
         }
 
-        // 2. Fetch unread emails
         const connector = new GmailConnector();
+
+        // 2. Check for token expiration (refresh if expired)
+        if (credentials.expiresAt && new Date(credentials.expiresAt) < new Date()) {
+          console.log(`[SyncWorker] Token expired for ${integration.id}. Refreshing...`);
+          if (credentials.refreshToken) {
+            credentials = await connector.refreshToken(credentials.refreshToken);
+            
+            // Save the new token to DB
+            const encryptedToken = CryptoService.encrypt(JSON.stringify(credentials));
+            await db.integrationCredential.create({
+              data: {
+                integrationId: integration.id,
+                encryptedToken
+              }
+            });
+            console.log(`[SyncWorker] Successfully refreshed token for ${integration.id}`);
+          } else {
+            console.error(`[SyncWorker] Token expired and no refresh token available for ${integration.id}`);
+            continue;
+          }
+        }
+
+        // 3. Fetch unread emails
         const emails = await connector.syncUnreadEmails(credentials);
         
         console.log(`[SyncWorker] Fetched ${emails.length} unread emails.`);
