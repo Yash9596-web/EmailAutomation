@@ -13,7 +13,8 @@ export default function WorkflowsDashboard() {
     fetch('/api/v1/workflows')
       .then(res => res.json())
       .then(json => {
-        setWorkflows(json.data || []);
+        // json.data is a PaginatedResult, so the actual array is json.data.data
+        setWorkflows(json.data?.data || []);
         setLoading(false);
       })
       .catch(() => setLoading(false));
