@@ -15,7 +15,7 @@ export default function NewWorkflowPage() {
     fetch('/api/v1/integrations')
       .then(res => res.json())
       .then(json => {
-        setIntegrations(json.data || []);
+        setIntegrations(json.data?.connected || []);
       });
   }, []);
 
