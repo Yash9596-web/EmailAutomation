@@ -94,7 +94,8 @@ export class SyncWorker {
               metadata: {
                 messageId: email.id,
                 from: fromHeader?.value,
-                integrationId: integration.id
+                integrationId: integration.id,
+                rawText: bodyStr
               }
             });
             totalEmailsSynced++;
@@ -113,13 +114,38 @@ export class SyncWorker {
       } catch (error: any) {
         console.error(`[SyncWorker] Failed to sync integration ${integration.id}:`, error);
         // If it's an auth error, we could optionally mark the integration as DISCONNECTED
-        if (error.message.includes('token')) {
+        if (error.message.includes('token') || error.message.includes('Auth') || error.message.includes('auth')) {
           await db.integration.update({
             where: { id: integration.id },
             data: { status: 'ERROR' }
           });
         }
       }
+    }
+
+    // --- Vercel Serverless Hack for MVP ---
+    // Since we don't have a background JobWorker constantly polling in serverless,
+    // we manually process the queued documents right after syncing emails!
+    console.log('[SyncWorker] Processing queued documents with Document AI Pipeline...');
+    try {
+      // Must import DocumentPipeline dynamically or at top.
+      const { DocumentPipeline } = await import('@/lib/documents/pipeline');
+      const { bootstrapAi } = await import('@/lib/ai/bootstrap');
+      
+      bootstrapAi(); // Ensure Gemini is registered in the serverless environment
+      
+      const queuedDocs = await db.document.findMany({
+        where: { status: 'QUEUED', source: 'EMAIL' },
+        take: 10 // process up to 10 at a time
+      });
+      
+      console.log(`[SyncWorker] Found ${queuedDocs.length} queued documents to process.`);
+      for (const doc of queuedDocs) {
+        console.log(`[SyncWorker] Processing document ${doc.id}...`);
+        await DocumentPipeline.process(doc.id);
+      }
+    } catch (err) {
+      console.error('[SyncWorker] Error processing documents:', err);
     }
 
     console.log(`[SyncWorker] Sync complete. Processed ${totalEmailsSynced} new emails.`);

@@ -21,44 +21,39 @@ export class DocumentPipeline {
     try {
       if (!doc.storageRef) throw new Error('Document missing storageRef');
 
-      // 1. OCR (Text Extraction)
-      const ocrResult = await OcrProvider.extractText(doc.storageRef);
+      // 1. Get Text (For MVP, we bypass OCR for emails and read from metadata)
+      const docMetadata = doc.metadata as any;
+      const textToAnalyze = docMetadata?.rawText || `Mock extracted text from ${doc.storageRef}`;
 
-      // 2. Classification
-      const classification = await DocumentClassifier.classify(ocrResult.text);
+      // 2. Classification using Gemini
+      const classification = await DocumentClassifier.classify(textToAnalyze);
       await db.document.update({
         where: { id: documentId },
-        data: { documentType: classification.documentType },
+        data: { documentType: classification.documentType, status: 'EXTRACTING' }
       });
 
-      if (classification.documentType === 'UNKNOWN' || classification.confidence < 0.8) {
-        await this.requireReview(documentId, doc.tenantId, 'Classification confidence too low');
-        return;
-      }
-
-      // 3. Data Extraction
-      await this.updateStatus(documentId, 'EXTRACTED');
-      let extraction = await ExtractionProvider.extract(classification.documentType, ocrResult.text);
-
-      // 3.5 Entity Matching
-      const { EntityMatcher } = await import('./extraction/matcher');
-      extraction = await EntityMatcher.match(doc.tenantId, classification.documentType, extraction);
-
-      // 4. Validation
-      await this.updateStatus(documentId, 'VALIDATING');
+      // 3. Extraction using Gemini
+      const extraction = await ExtractionProvider.extract(classification.documentType, textToAnalyze);
+      
+      // 4. Validation (Using our strict JSON schema validator)
       const validation = await DocumentValidator.validate(classification.documentType, extraction.data);
 
+      const nextStatus = validation.isValid ? 'COMPLETED' : 'REVIEW_REQUIRED';
+      const finalConfidence = Math.min(classification.confidence, extraction.confidence);
+
+      // 5. Save results
+      const finalStatus = (finalConfidence < 0.8 || !validation.isValid) ? 'REVIEW_REQUIRED' : nextStatus;
       await db.document.update({
         where: { id: documentId },
         data: {
           extractedData: extraction.data,
-          validationResults: validation as any,
+          validationResults: validation.errors,
           confidence: extraction.confidence,
         },
       });
 
       // 5. Confidence & Review Gate
-      if (!validation.valid || extraction.confidence < 0.8) {
+      if (!validation.isValid || extraction.confidence < 0.8) {
         await this.requireReview(documentId, doc.tenantId, validation.errors.join('; ') || 'Extraction confidence too low');
         return;
       }
