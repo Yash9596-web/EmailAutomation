@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import styles from './layout.module.css';
 
 const NAV_ITEMS = [
-  { name: 'Dashboard', href: '/support' },
+  { name: 'Dashboard', href: '/' },
   { name: 'Documents AI', href: '/documents' },
   { name: 'Workflows', href: '/workflows' },
   { name: 'Integrations', href: '/integrations' },
