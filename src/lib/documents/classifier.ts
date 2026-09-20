@@ -40,5 +40,4 @@ If it is a general email conversation or newsletter, classify as GENERAL_EMAIL.`
       return { documentType: 'UNKNOWN', confidence: 0.4 };
     }
   }
-  }
 }
