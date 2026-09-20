@@ -1,7 +1,7 @@
 import { logger } from '@/lib/logger';
 import { AiProviderRegistry } from '@/lib/ai/registry';
-import { invoiceSchema } from '../schemas/invoice';
-import { purchaseOrderSchema } from '../schemas/purchase-order';
+import { InvoiceSchema } from '../schemas/invoice';
+import { PurchaseOrderSchema } from '../schemas/purchase-order';
 
 export interface ExtractionResult {
   data: Record<string, any>;
@@ -19,8 +19,8 @@ export class ExtractionProvider {
       const ai = AiProviderRegistry.get('gemini');
       let schema;
       
-      if (documentType === 'INVOICE') schema = invoiceSchema;
-      else if (documentType === 'PURCHASE_ORDER') schema = purchaseOrderSchema;
+      if (documentType === 'INVOICE') schema = InvoiceSchema;
+      else if (documentType === 'PURCHASE_ORDER') schema = PurchaseOrderSchema;
       else return { data: { raw_text: text }, confidence: 0.5 }; // Generic fallback
 
       const promptId = `extract_${documentType}`;
@@ -29,7 +29,7 @@ export class ExtractionProvider {
       const response = await ai.generateStructured(promptId, systemPrompt, text, schema);
       
       return {
-        data: response.data,
+        data: response.data as Record<string, any>,
         confidence: response.confidence === 'HIGH' ? 0.95 : 0.7
       };
     } catch (e) {
@@ -39,12 +39,6 @@ export class ExtractionProvider {
       if (documentType === 'PURCHASE_ORDER') return this.mockPurchaseOrderExtraction(text);
       return { data: {}, confidence: 0.1 };
     }
-  }
-
-    return {
-      data: { rawText: text },
-      confidence: 0.5
-    };
   }
 
   private static mockInvoiceExtraction(text: string): ExtractionResult {

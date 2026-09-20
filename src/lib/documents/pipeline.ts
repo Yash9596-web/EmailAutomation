@@ -38,11 +38,11 @@ export class DocumentPipeline {
       // 4. Validation (Using our strict JSON schema validator)
       const validation = await DocumentValidator.validate(classification.documentType, extraction.data);
 
-      const nextStatus = validation.isValid ? 'COMPLETED' : 'REVIEW_REQUIRED';
+      const nextStatus = validation.valid ? 'COMPLETED' : 'REVIEW_REQUIRED';
       const finalConfidence = Math.min(classification.confidence, extraction.confidence);
 
       // 5. Save results
-      const finalStatus = (finalConfidence < 0.8 || !validation.isValid) ? 'REVIEW_REQUIRED' : nextStatus;
+      const finalStatus = (finalConfidence < 0.8 || !validation.valid) ? 'REVIEW_REQUIRED' : nextStatus;
       await db.document.update({
         where: { id: documentId },
         data: {
@@ -53,7 +53,7 @@ export class DocumentPipeline {
       });
 
       // 5. Confidence & Review Gate
-      if (!validation.isValid || extraction.confidence < 0.8) {
+      if (!validation.valid || extraction.confidence < 0.8) {
         await this.requireReview(documentId, doc.tenantId, validation.errors.join('; ') || 'Extraction confidence too low');
         return;
       }
