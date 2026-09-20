@@ -155,6 +155,21 @@ export class GmailConnector implements ConnectorContract {
     return results;
   }
 
+  async markAsRead(credentials: CredentialPayload, messageId: string): Promise<void> {
+    if (!credentials.accessToken) return;
+
+    await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${messageId}/modify`, {
+      method: 'POST',
+      headers: { 
+        Authorization: `Bearer ${credentials.accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        removeLabelIds: ['UNREAD']
+      })
+    });
+  }
+
   async executeAction(action: string, credentials: CredentialPayload, config: Record<string, any>): Promise<any> {
     if (action === 'send_email') {
       // Future implementation: actual Gmail API send

@@ -98,6 +98,9 @@ export class SyncWorker {
               }
             });
             totalEmailsSynced++;
+            
+            // Mark as read so we don't fetch it again on the next sync
+            await connector.markAsRead(credentials, email.id);
           }
         }
 
