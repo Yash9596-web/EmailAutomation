@@ -136,7 +136,7 @@ export class SyncWorker {
       
       const queuedDocs = await db.document.findMany({
         where: { status: 'QUEUED', source: 'EMAIL' },
-        take: 10 // process up to 10 at a time
+        take: 3 // process up to 3 at a time to prevent Vercel 10s timeouts
       });
       
       console.log(`[SyncWorker] Found ${queuedDocs.length} queued documents to process.`);

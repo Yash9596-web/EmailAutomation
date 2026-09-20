@@ -16,3 +16,7 @@ export async function POST(request: Request) {
     return errorResponse(error);
   }
 }
+
+export async function GET(request: Request) {
+  return POST(request);
+}
